@@ -20,7 +20,7 @@ function App() {
 
       {/* Content */}
       <main className="flex-1 overflow-y-auto container mx-auto px-4 py-6 max-w-lg">
-        {activeTab === 'today' && <TodayInput key={refreshKey} onRefresh={handleRefresh} />}
+        {activeTab === 'today' && <TodayInput onRefresh={handleRefresh} />}
         {activeTab === 'history' && <History key={refreshKey} />}
         {activeTab === 'settings' && <Settings key={refreshKey} />}
       </main>

@@ -86,10 +86,19 @@ export function useMilkEntries() {
     [getEntriesForMonth]
   );
 
+  const deleteEntry = useCallback(
+    (date: string) => {
+      const newEntries = entries.filter((e) => e.date !== date);
+      saveEntries(newEntries);
+    },
+    [entries, saveEntries]
+  );
+
   return {
     entries,
     getTodayEntry,
     updateEntry,
+    deleteEntry,
     getEntriesForMonth,
     getMonthSummary,
   };
