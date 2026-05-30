@@ -166,7 +166,7 @@ export function TodayInput({ onRefresh }: { onRefresh: () => void }) {
 
       {/* Recent Entries */}
       {recentEntries.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-24">
           <h3 className="text-lg font-bold text-gray-800 mb-3">📋 Ngày đã nhập</h3>
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {recentEntries.map((e) => {
