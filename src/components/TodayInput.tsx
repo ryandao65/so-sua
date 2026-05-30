@@ -1,29 +1,52 @@
+import { useState, useEffect } from 'react';
 import { useMilkEntries } from '../hooks/useMilkEntries';
+import { formatDate, type MilkEntry } from '../types';
 
 interface TodayInputProps {
   onRefresh: () => void;
 }
 
 export function TodayInput({ onRefresh }: TodayInputProps) {
-  const { getTodayEntry, updateEntry } = useMilkEntries();
-  const entry = getTodayEntry();
+  const { entries, updateEntry } = useMilkEntries();
   const today = new Date();
+  const [selectedDate, setSelectedDate] = useState(formatDate(today));
+  const [displayEntry, setDisplayEntry] = useState<MilkEntry | null>(null);
+
+  // Update displayEntry when date or entries change
+  useEffect(() => {
+    const existing = entries.find((e) => e.date === selectedDate);
+    setDisplayEntry(existing || { date: selectedDate, morning: null, afternoon: null });
+  }, [selectedDate, entries]);
 
   const handleSubmit = (field: 'morning' | 'afternoon') => {
     const input = document.getElementById(field) as HTMLInputElement;
     const value = parseFloat(input.value);
 
     if (!isNaN(value) && value > 0) {
-      updateEntry(entry.date, field, value);
+      updateEntry(selectedDate, field, value);
       input.value = '';
       onRefresh();
     }
   };
 
+  const entry = displayEntry || { date: selectedDate, morning: null, afternoon: null };
+  const displayDate = new Date(selectedDate + 'T00:00:00');
+
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+      <div className="mb-4">
+        <label className="block text-sm text-gray-600 mb-1">Chọn ngày</label>
+        <input
+          type="date"
+          value={selectedDate}
+          max={formatDate(today)}
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="w-full text-lg p-2 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
+        />
+      </div>
+
       <h2 className="text-xl font-bold text-gray-800 mb-4">
-        📅 {today.toLocaleDateString('vi-VN', {
+        📅 {displayDate.toLocaleDateString('vi-VN', {
           weekday: 'long',
           day: 'numeric',
           month: 'long',
@@ -93,12 +116,12 @@ export function TodayInput({ onRefresh }: TodayInputProps) {
         </div>
       </div>
 
-      {/* Tổng hôm nay */}
+      {/* Tổng */}
       {(entry.morning !== null || entry.afternoon !== null) && (
         <div className="mt-4 p-4 bg-gray-100 rounded-xl text-center">
-          <span className="text-gray-600">Tổng hôm nay: </span>
+          <span className="text-gray-600">Tổng: </span>
           <span className="text-2xl font-bold text-gray-800">
-            {(entry.morning || 0) + (entry.afternoon || 0)} lít
+            {((entry.morning || 0) + (entry.afternoon || 0)).toFixed(1)} lít
           </span>
         </div>
       )}
