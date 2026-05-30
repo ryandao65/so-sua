@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { useMilkEntries } from '../hooks/useMilkEntries';
 import { formatDate, type MilkEntry } from '../types';
 
-const STORAGE_KEY = 'so-sua_selected_date';
-
 interface TodayInputProps {
   onRefresh: () => void;
 }
@@ -12,15 +10,11 @@ export function TodayInput({ onRefresh }: TodayInputProps) {
   const { entries, updateEntry } = useMilkEntries();
   const today = new Date();
   const todayStr = formatDate(today);
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved && saved <= todayStr ? saved : todayStr;
-  });
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
   const [displayEntry, setDisplayEntry] = useState<MilkEntry | null>(null);
 
   const handleDateChange = (newDate: string) => {
     setSelectedDate(newDate);
-    localStorage.setItem(STORAGE_KEY, newDate);
   };
 
   const goToToday = () => {
