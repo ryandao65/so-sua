@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useMilkEntries } from '../hooks/useMilkEntries';
 import { formatDate, type MilkEntry } from '../types';
 
+const STORAGE_KEY = 'so-sua_selected_date';
+
 interface TodayInputProps {
   onRefresh: () => void;
 }
@@ -9,10 +11,22 @@ interface TodayInputProps {
 export function TodayInput({ onRefresh }: TodayInputProps) {
   const { entries, updateEntry } = useMilkEntries();
   const today = new Date();
-  const [selectedDate, setSelectedDate] = useState(formatDate(today));
+  const todayStr = formatDate(today);
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved && saved <= todayStr ? saved : todayStr;
+  });
   const [displayEntry, setDisplayEntry] = useState<MilkEntry | null>(null);
 
-  // Update displayEntry when date or entries change
+  const handleDateChange = (newDate: string) => {
+    setSelectedDate(newDate);
+    localStorage.setItem(STORAGE_KEY, newDate);
+  };
+
+  const goToToday = () => {
+    handleDateChange(todayStr);
+  };
+
   useEffect(() => {
     const existing = entries.find((e) => e.date === selectedDate);
     setDisplayEntry(existing || { date: selectedDate, morning: null, afternoon: null });
@@ -34,15 +48,25 @@ export function TodayInput({ onRefresh }: TodayInputProps) {
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-      <div className="mb-4">
-        <label className="block text-sm text-gray-600 mb-1">Chọn ngày</label>
-        <input
-          type="date"
-          value={selectedDate}
-          max={formatDate(today)}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="w-full text-lg p-2 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
-        />
+      <div className="flex gap-2 items-center mb-4">
+        <div className="flex-1">
+          <label className="block text-sm text-gray-600 mb-1">Chọn ngày</label>
+          <input
+            type="date"
+            value={selectedDate}
+            max={todayStr}
+            onChange={(e) => handleDateChange(e.target.value)}
+            className="w-full text-lg p-2 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
+          />
+        </div>
+        {selectedDate !== todayStr && (
+          <button
+            onClick={goToToday}
+            className="mt-6 bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-xl transition text-sm"
+          >
+            Hôm nay
+          </button>
+        )}
       </div>
 
       <h2 className="text-xl font-bold text-gray-800 mb-4">
