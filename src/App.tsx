@@ -12,14 +12,14 @@ function App() {
   const handleRefresh = () => setRefreshKey((k) => k + 1);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 shadow-lg">
+      <header className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 shadow-lg shrink-0">
         <h1 className="text-2xl font-bold text-center">🥛 Sổ sữa</h1>
       </header>
 
       {/* Content */}
-      <main className="container mx-auto px-4 py-6 max-w-lg">
+      <main className="flex-1 overflow-y-auto container mx-auto px-4 py-6 max-w-lg">
         {activeTab === 'today' && <TodayInput key={refreshKey} onRefresh={handleRefresh} />}
         {activeTab === 'history' && <History key={refreshKey} />}
         {activeTab === 'settings' && <Settings key={refreshKey} />}

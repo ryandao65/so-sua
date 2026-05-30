@@ -22,19 +22,19 @@ export function Settings() {
           <label className="block text-gray-700 font-medium mb-2">
             💰 Giá sữa (VNĐ / lít)
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-stretch">
             <input
               type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="flex-1 text-xl font-bold p-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none"
+              className="flex-1 min-w-0 text-xl font-bold p-3 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none"
               placeholder="0"
               min="0"
               step="100"
             />
             <button
               onClick={handleSave}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-bold px-6 py-3 rounded-xl transition"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold px-4 sm:px-6 py-3 rounded-xl transition whitespace-nowrap"
             >
               Lưu
             </button>
