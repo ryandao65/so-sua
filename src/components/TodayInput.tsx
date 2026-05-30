@@ -31,14 +31,14 @@ export function TodayInput({ onRefresh }: TodayInputProps) {
         })}
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Sáng */}
         <div className="bg-amber-50 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-3xl">🌅</span>
             <h3 className="text-lg font-semibold text-amber-800">Buổi Sáng</h3>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-stretch">
             <input
               id="morning"
               type="number"
@@ -46,11 +46,11 @@ export function TodayInput({ onRefresh }: TodayInputProps) {
               min="0"
               placeholder={entry.morning ? entry.morning.toString() : '0.0'}
               defaultValue={entry.morning ?? ''}
-              className="flex-1 text-2xl font-bold text-center p-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:outline-none"
+              className="flex-1 min-w-0 text-xl sm:text-2xl font-bold text-center p-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:outline-none"
             />
             <button
               onClick={() => handleSubmit('morning')}
-              className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-xl transition"
+              className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 sm:px-6 py-3 rounded-xl transition whitespace-nowrap"
             >
               Lưu
             </button>
@@ -68,7 +68,7 @@ export function TodayInput({ onRefresh }: TodayInputProps) {
             <span className="text-3xl">🌇</span>
             <h3 className="text-lg font-semibold text-orange-800">Buổi Chiều</h3>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-stretch">
             <input
               id="afternoon"
               type="number"
@@ -76,11 +76,11 @@ export function TodayInput({ onRefresh }: TodayInputProps) {
               min="0"
               placeholder={entry.afternoon ? entry.afternoon.toString() : '0.0'}
               defaultValue={entry.afternoon ?? ''}
-              className="flex-1 text-2xl font-bold text-center p-3 rounded-xl border-2 border-orange-200 focus:border-orange-500 focus:outline-none"
+              className="flex-1 min-w-0 text-xl sm:text-2xl font-bold text-center p-3 rounded-xl border-2 border-orange-200 focus:border-orange-500 focus:outline-none"
             />
             <button
               onClick={() => handleSubmit('afternoon')}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl transition"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 sm:px-6 py-3 rounded-xl transition whitespace-nowrap"
             >
               Lưu
             </button>
