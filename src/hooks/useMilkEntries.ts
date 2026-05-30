@@ -5,9 +5,12 @@ import {
   type MonthSummary,
   STORAGE_KEYS,
   getDefaultSettings,
-  getMonthKey,
   formatDate,
 } from '../types';
+
+function getMonthKey(dateStr: string): string {
+  return dateStr.substring(0, 7);
+}
 
 export function useMilkEntries() {
   const [entries, setEntries] = useState<MilkEntry[]>([]);
@@ -61,7 +64,7 @@ export function useMilkEntries() {
         .filter((e) => getMonthKey(e.date) === monthKey)
         .sort((a, b) => a.date.localeCompare(b.date));
     },
-    [entries]
+    [entries, getMonthKey]
   );
 
   const getMonthSummary = useCallback(

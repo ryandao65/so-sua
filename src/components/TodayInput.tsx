@@ -104,7 +104,7 @@ export function TodayInput({ onRefresh }: TodayInputProps) {
           </div>
           {entry.morning !== null && (
             <p className="text-center mt-2 text-amber-700 font-medium">
-              Đã nhập: {entry.morning} lít
+              Đã nhập: {entry.morning.toFixed(1)} lít
             </p>
           )}
         </div>
@@ -134,7 +134,7 @@ export function TodayInput({ onRefresh }: TodayInputProps) {
           </div>
           {entry.afternoon !== null && (
             <p className="text-center mt-2 text-orange-700 font-medium">
-              Đã nhập: {entry.afternoon} lít
+              Đã nhập: {entry.afternoon.toFixed(1)} lít
             </p>
           )}
         </div>

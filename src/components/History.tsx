@@ -112,7 +112,7 @@ export function History() {
             : `Tổng năm ${selectedYear}`}
         </div>
         <div className="text-3xl font-bold mb-2">
-          {viewMode === 'month' ? summary.totalLiters : yearTotalLiters} lít
+          {viewMode === 'month' ? summary.totalLiters.toFixed(1) : yearTotalLiters.toFixed(1)} lít
         </div>
         {settings.milkPrice > 0 && (
           <div className="text-xl">
@@ -145,7 +145,7 @@ export function History() {
                     🌇 {entry.afternoon ?? '-'} lít
                   </span>
                   <span className="font-bold text-blue-600">
-                    = {(entry.morning || 0) + (entry.afternoon || 0)} lít
+                    = {((entry.morning || 0) + (entry.afternoon || 0)).toFixed(1)} lít
                   </span>
                 </div>
               </div>
