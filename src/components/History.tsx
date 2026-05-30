@@ -21,16 +21,16 @@ export function History() {
 
   const [selectedYear, setSelectedYear] = useState(currentYear.toString());
 
-  const monthKey = viewMode === 'month' ? selectedMonth : `${selectedYear}-${selectedMonth}`;
+  const monthKey = `${selectedYear}-${selectedMonth}`;
   const summary = getMonthSummary(monthKey, settings.milkPrice || 0);
 
-  // Group entries by year for year view
-  const entriesByYear = entries.reduce((acc, entry) => {
-    const year = entry.date.substring(0, 4);
-    if (!acc[year]) acc[year] = [];
-    acc[year].push(entry);
-    return acc;
-  }, {} as Record<string, typeof entries>);
+  // Year view data
+  const yearEntries = entries.filter((e) => e.date.startsWith(selectedYear));
+  const yearTotalLiters = yearEntries.reduce(
+    (sum, e) => sum + (e.morning || 0) + (e.afternoon || 0),
+    0
+  );
+  const yearTotalMoney = yearTotalLiters * settings.milkPrice;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -108,18 +108,16 @@ export function History() {
       <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-5 text-white mb-4">
         <div className="text-sm opacity-90 mb-1">
           {viewMode === 'month'
-            ? `Tổng ${selectedMonth}`
+            ? `Tổng tháng ${selectedMonth}`
             : `Tổng năm ${selectedYear}`}
         </div>
         <div className="text-3xl font-bold mb-2">
-          {viewMode === 'month' ? summary.totalLiters : 
-            Object.values(entriesByYear)[0]?.reduce((sum, e) => sum + (e.morning || 0) + (e.afternoon || 0), 0) || 0} lít
+          {viewMode === 'month' ? summary.totalLiters : yearTotalLiters} lít
         </div>
         {settings.milkPrice > 0 && (
           <div className="text-xl">
             = {new Intl.NumberFormat('vi-VN').format(
-              (viewMode === 'month' ? summary.totalMoney : 
-                Object.values(entriesByYear)[0]?.reduce((sum, e) => sum + (e.morning || 0) + (e.afternoon || 0), 0) || 0) * settings.milkPrice
+              viewMode === 'month' ? summary.totalMoney : yearTotalMoney
             )} VNĐ
           </div>
         )}
@@ -154,39 +152,33 @@ export function History() {
             ))
           )
         ) : (
-          Object.entries(entriesByYear)
-            .filter(([year]) => year === selectedYear)
-            .map(([year, yearEntries]) => (
-              <div key={year}>
-                {yearEntries.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">Chưa có dữ liệu năm này</p>
-                ) : (
-                  yearEntries
-                    .sort((a, b) => b.date.localeCompare(a.date))
-                    .map((entry) => (
-                      <div
-                        key={entry.date}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-600">{formatDisplayDate(entry.date)}</span>
-                        </div>
-                        <div className="flex gap-4 text-sm">
-                          <span className="text-amber-600">
-                            ☀️ {entry.morning ?? '-'} lít
-                          </span>
-                          <span className="text-orange-600">
-                            🌇 {entry.afternoon ?? '-'} lít
-                          </span>
-                          <span className="font-bold text-blue-600">
-                            = {(entry.morning || 0) + (entry.afternoon || 0)} lít
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                )}
-              </div>
-            ))
+          yearEntries.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">Chưa có dữ liệu năm này</p>
+          ) : (
+            yearEntries
+              .sort((a, b) => b.date.localeCompare(a.date))
+              .map((entry) => (
+                <div
+                  key={entry.date}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600">{formatDisplayDate(entry.date)}</span>
+                  </div>
+                  <div className="flex gap-4 text-sm">
+                    <span className="text-amber-600">
+                      ☀️ {entry.morning ?? '-'} lít
+                    </span>
+                    <span className="text-orange-600">
+                      🌇 {entry.afternoon ?? '-'} lít
+                    </span>
+                    <span className="font-bold text-blue-600">
+                      = {(entry.morning || 0) + (entry.afternoon || 0)} lít
+                    </span>
+                  </div>
+                </div>
+              ))
+          )
         )}
       </div>
     </div>
