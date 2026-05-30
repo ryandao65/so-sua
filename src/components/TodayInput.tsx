@@ -1,0 +1,107 @@
+import { useMilkEntries } from '../hooks/useMilkEntries';
+
+interface TodayInputProps {
+  onRefresh: () => void;
+}
+
+export function TodayInput({ onRefresh }: TodayInputProps) {
+  const { getTodayEntry, updateEntry } = useMilkEntries();
+  const entry = getTodayEntry();
+  const today = new Date();
+
+  const handleSubmit = (field: 'morning' | 'afternoon') => {
+    const input = document.getElementById(field) as HTMLInputElement;
+    const value = parseFloat(input.value);
+
+    if (!isNaN(value) && value > 0) {
+      updateEntry(entry.date, field, value);
+      input.value = '';
+      onRefresh();
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">
+        📅 {today.toLocaleDateString('vi-VN', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })}
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Sáng */}
+        <div className="bg-amber-50 rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-3xl">🌅</span>
+            <h3 className="text-lg font-semibold text-amber-800">Buổi Sáng</h3>
+          </div>
+          <div className="flex gap-2">
+            <input
+              id="morning"
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder={entry.morning ? entry.morning.toString() : '0.0'}
+              defaultValue={entry.morning ?? ''}
+              className="flex-1 text-2xl font-bold text-center p-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:outline-none"
+            />
+            <button
+              onClick={() => handleSubmit('morning')}
+              className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-xl transition"
+            >
+              Lưu
+            </button>
+          </div>
+          {entry.morning !== null && (
+            <p className="text-center mt-2 text-amber-700 font-medium">
+              Đã nhập: {entry.morning} lít
+            </p>
+          )}
+        </div>
+
+        {/* Chiều */}
+        <div className="bg-orange-50 rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-3xl">🌇</span>
+            <h3 className="text-lg font-semibold text-orange-800">Buổi Chiều</h3>
+          </div>
+          <div className="flex gap-2">
+            <input
+              id="afternoon"
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder={entry.afternoon ? entry.afternoon.toString() : '0.0'}
+              defaultValue={entry.afternoon ?? ''}
+              className="flex-1 text-2xl font-bold text-center p-3 rounded-xl border-2 border-orange-200 focus:border-orange-500 focus:outline-none"
+            />
+            <button
+              onClick={() => handleSubmit('afternoon')}
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl transition"
+            >
+              Lưu
+            </button>
+          </div>
+          {entry.afternoon !== null && (
+            <p className="text-center mt-2 text-orange-700 font-medium">
+              Đã nhập: {entry.afternoon} lít
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Tổng hôm nay */}
+      {(entry.morning !== null || entry.afternoon !== null) && (
+        <div className="mt-4 p-4 bg-gray-100 rounded-xl text-center">
+          <span className="text-gray-600">Tổng hôm nay: </span>
+          <span className="text-2xl font-bold text-gray-800">
+            {(entry.morning || 0) + (entry.afternoon || 0)} lít
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
