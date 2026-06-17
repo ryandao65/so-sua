@@ -7,22 +7,14 @@ type Tab = 'today' | 'history' | 'settings';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('today');
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const handleRefresh = () => setRefreshKey((k) => k + 1);
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 shadow-lg shrink-0">
-        <h1 className="text-2xl font-bold text-center">🥛 Sổ sữa</h1>
-      </header>
-
       {/* Content */}
       <main className="flex-1 overflow-y-auto container mx-auto px-4 py-6 max-w-lg">
-        {activeTab === 'today' && <TodayInput onRefresh={handleRefresh} />}
-        {activeTab === 'history' && <History key={refreshKey} />}
-        {activeTab === 'settings' && <Settings key={refreshKey} />}
+        {activeTab === 'today' && <TodayInput />}
+        {activeTab === 'history' && <History />}
+        {activeTab === 'settings' && <Settings />}
       </main>
 
       {/* Bottom Navigation */}
@@ -34,7 +26,7 @@ function App() {
               activeTab === 'today' ? 'text-blue-600' : 'text-gray-500'
             }`}
           >
-            <span className="text-2xl mb-1">📝</span>
+            <span className="text-2xl mb-1">📅</span>
             <span className="text-xs font-medium">Nhập liệu</span>
           </button>
           <button

@@ -44,3 +44,21 @@ export function getMonthKey(dateStr: string): string {
 export function getYearKey(dateStr: string): string {
   return dateStr.substring(0, 4); // YYYY
 }
+
+export function getDaysInMonth(year: number, month: number): number[] {
+  const days: number[] = [];
+  const daysCount = new Date(year, month, 0).getDate();
+  for (let i = 1; i <= daysCount; i++) {
+    days.push(i);
+  }
+  return days;
+}
+
+export function formatMonthLabel(monthKey: string): string {
+  const [year, month] = monthKey.split('-');
+  const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+  return date.toLocaleDateString('vi-VN', {
+    month: 'long',
+    year: 'numeric',
+  });
+}

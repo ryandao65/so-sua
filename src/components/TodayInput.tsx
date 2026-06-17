@@ -1,218 +1,226 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useMilkEntries } from '../hooks/useMilkEntries';
-import { formatDate, type MilkEntry } from '../types';
+import { useSettings } from '../hooks/useMilkEntries';
+import { getDaysInMonth, formatMonthLabel } from '../types';
 
-export function TodayInput({ onRefresh }: { onRefresh: () => void }) {
-  const { entries, updateEntry, deleteEntry } = useMilkEntries();
+export function TodayInput() {
+  const { entries, updateEntry } = useMilkEntries();
+  const { settings } = useSettings();
+
   const today = new Date();
-  const todayStr = formatDate(today);
-  const [selectedDate, setSelectedDate] = useState(todayStr);
-  const [displayEntry, setDisplayEntry] = useState<MilkEntry | null>(null);
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  const [year, month] = currentMonth.split('-').map(Number);
+  const days = useMemo(() => getDaysInMonth(year, month), [year, month]);
+
+  const monthEntries = useMemo(
+    () => entries.filter((e) => e.date.startsWith(currentMonth)),
+    [entries, currentMonth],
+  );
+
+  const totalLiters = useMemo(
+    () => monthEntries.reduce((sum, e) => sum + (e.morning || 0) + (e.afternoon || 0), 0),
+    [monthEntries],
+  );
+
+  const totalMoney = totalLiters * settings.milkPrice;
+
+  const getEntryForDay = (day: number) => {
+    const dateStr = `${currentMonth}-${String(day).padStart(2, '0')}`;
+    return entries.find((e) => e.date === dateStr);
+  };
+
+  const handleInputChange = (day: number, field: 'morning' | 'afternoon', rawValue: string) => {
+    if (rawValue === '' || !isNaN(parseFloat(rawValue))) {
+      const dateStr = `${currentMonth}-${String(day).padStart(2, '0')}`;
+      updateEntry(dateStr, field, rawValue === '' ? null : parseFloat(rawValue));
+    }
+  };
+
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const canGoNext = currentMonth < currentMonthKey;
+  const isCurrentMonth = currentMonth === currentMonthKey;
+
+  const goToPrevMonth = () => {
+    const d = new Date(year, month - 2, 1);
+    setCurrentMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  };
+
+  const goToNextMonth = () => {
+    const d = new Date(year, month, 1);
+    setCurrentMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  };
+
+  const goToCurrentMonth = () => setCurrentMonth(currentMonthKey);
+
+  const dayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+  const todayRowRef = useRef<HTMLTableRowElement>(null);
 
   useEffect(() => {
-    const existing = entries.find((e) => e.date === selectedDate);
-    setDisplayEntry(existing || { date: selectedDate, morning: null, afternoon: null });
-  }, [selectedDate, entries]);
-
-  const handleDateChange = (newDate: string) => {
-    setSelectedDate(newDate);
-  };
-
-  const goToToday = () => {
-    handleDateChange(todayStr);
-  };
-
-  const handleSubmit = (field: 'morning' | 'afternoon') => {
-    const input = document.getElementById(field) as HTMLInputElement;
-    const value = parseFloat(input.value);
-
-    if (!isNaN(value) && value > 0) {
-      updateEntry(selectedDate, field, value);
-      input.value = '';
-      onRefresh();
+    if (todayRowRef.current) {
+      todayRowRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
-  };
-
-  const handleDelete = (date: string) => {
-    if (confirm('Xóa dữ liệu ngày này?')) {
-      deleteEntry(date);
-      if (selectedDate === date) {
-        const nextDate = todayStr;
-        setSelectedDate(nextDate);
-      }
-      onRefresh();
-    }
-  };
-
-  const jumpToDate = (date: string) => {
-    setSelectedDate(date);
-  };
-
-  const entry = displayEntry || { date: selectedDate, morning: null, afternoon: null };
-  const displayDate = new Date(selectedDate + 'T00:00:00');
-
-  // Recent entries (excluding today if there are others)
-  const recentEntries = entries
-    .filter((e) => e.date !== todayStr)
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, 10);
+  }, [currentMonth]);
 
   return (
-    <div className="space-y-4">
-      {/* Main Input Card */}
-      <div className="bg-white rounded-2xl shadow-lg p-6">
-        <div className="flex gap-2 items-center mb-4">
-          <div className="flex-1">
-            <label className="block text-sm text-gray-600 mb-1">Chọn ngày</label>
-            <input
-              type="date"
-              value={selectedDate}
-              max={todayStr}
-              onChange={(e) => handleDateChange(e.target.value)}
-              className="w-full text-lg p-2 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none"
-            />
-          </div>
-          {selectedDate !== todayStr && (
-            <button
-              onClick={goToToday}
-              className="mt-6 bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-2 rounded-xl transition text-sm"
-            >
-              Hôm nay
-            </button>
+    <div className="space-y-4 mb-24">
+      {/* Month Navigation */}
+      <div className="bg-white rounded-2xl shadow-lg p-4">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={goToPrevMonth}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-lg transition"
+          >
+            ◀
+          </button>
+          <h2 className="text-lg font-bold text-gray-800 text-center flex-1 mx-2">
+            {formatMonthLabel(currentMonth)}
+          </h2>
+          <button
+            onClick={goToNextMonth}
+            disabled={!canGoNext}
+            className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold text-lg transition ${
+              canGoNext
+                ? 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                : 'bg-gray-50 text-gray-300 cursor-not-allowed'
+            }`}
+          >
+            ▶
+          </button>
+        </div>
+        {!isCurrentMonth && (
+          <button
+            onClick={goToCurrentMonth}
+            className="w-full mt-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium rounded-xl transition text-sm"
+          >
+            Quay về tháng này
+          </button>
+        )}
+      </div>
+
+      {/* Totals Card */}
+      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-lg p-5 text-white">
+        <div className="text-sm opacity-90 mb-1">Tổng tháng</div>
+        <div className="flex items-baseline gap-3">
+          <span className="text-3xl font-bold">{totalLiters.toFixed(1)}</span>
+          <span className="text-lg opacity-90">lít</span>
+          {settings.milkPrice > 0 && (
+            <>
+              <span className="text-lg opacity-70 mx-1">·</span>
+              <span className="text-xl font-semibold">
+                {new Intl.NumberFormat('vi-VN').format(totalMoney)} VNĐ
+              </span>
+            </>
           )}
         </div>
-
-        <h2 className="text-xl font-bold text-gray-800 mb-4">
-          📅 {displayDate.toLocaleDateString('vi-VN', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          })}
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {/* Sáng */}
-          <div className="bg-amber-50 rounded-xl p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-3xl">🌅</span>
-              <h3 className="text-lg font-semibold text-amber-800">Buổi Sáng</h3>
-            </div>
-            <div className="flex gap-2 items-stretch">
-              <input
-                id="morning"
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder={entry.morning ? entry.morning.toFixed(1) : '0.0'}
-                defaultValue={entry.morning ?? ''}
-                className="flex-1 min-w-0 text-xl sm:text-2xl font-bold text-center p-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:outline-none"
-              />
-              <button
-                onClick={() => handleSubmit('morning')}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 sm:px-6 py-3 rounded-xl transition whitespace-nowrap"
-              >
-                Lưu
-              </button>
-            </div>
-            {entry.morning !== null && (
-              <p className="text-center mt-2 text-amber-700 font-medium">
-                Đã nhập: {entry.morning.toFixed(1)} lít
-              </p>
-            )}
-          </div>
-
-          {/* Chiều */}
-          <div className="bg-orange-50 rounded-xl p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-3xl">🌇</span>
-              <h3 className="text-lg font-semibold text-orange-800">Buổi Chiều</h3>
-            </div>
-            <div className="flex gap-2 items-stretch">
-              <input
-                id="afternoon"
-                type="number"
-                step="0.1"
-                min="0"
-                placeholder={entry.afternoon ? entry.afternoon.toFixed(1) : '0.0'}
-                defaultValue={entry.afternoon ?? ''}
-                className="flex-1 min-w-0 text-xl sm:text-2xl font-bold text-center p-3 rounded-xl border-2 border-orange-200 focus:border-orange-500 focus:outline-none"
-              />
-              <button
-                onClick={() => handleSubmit('afternoon')}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 sm:px-6 py-3 rounded-xl transition whitespace-nowrap"
-              >
-                Lưu
-              </button>
-            </div>
-            {entry.afternoon !== null && (
-              <p className="text-center mt-2 text-orange-700 font-medium">
-                Đã nhập: {entry.afternoon.toFixed(1)} lít
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Tổng */}
-        {(entry.morning !== null || entry.afternoon !== null) && (
-          <div className="mt-4 p-4 bg-gray-100 rounded-xl text-center">
-            <span className="text-gray-600">Tổng: </span>
-            <span className="text-2xl font-bold text-gray-800">
-              {((entry.morning || 0) + (entry.afternoon || 0)).toFixed(1)} lít
-            </span>
+        {settings.milkPrice === 0 && (
+          <div className="text-sm opacity-80 italic mt-1">
+            (Cài đặt giá sữa trong tab ⚙️ để xem thành tiền)
           </div>
         )}
       </div>
 
-      {/* Recent Entries */}
-      {recentEntries.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-24">
-          <h3 className="text-lg font-bold text-gray-800 mb-3">📋 Ngày đã nhập</h3>
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {recentEntries.map((e) => {
-              const date = new Date(e.date + 'T00:00:00');
-              const dateStr = date.toLocaleDateString('vi-VN', {
-                weekday: 'short',
-                day: 'numeric',
-                month: 'numeric',
-              });
-              const total = (e.morning || 0) + (e.afternoon || 0);
-              const isSelected = e.date === selectedDate;
+      {/* Table */}
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="py-3 px-4 text-left text-sm font-semibold text-gray-600 w-16">Ngày</th>
+                <th className="py-3 px-2 text-center text-sm font-semibold text-amber-700 w-1/2">
+                  🌅 Sáng (lít)
+                </th>
+                <th className="py-3 px-2 text-center text-sm font-semibold text-orange-700 w-1/2">
+                  🌇 Chiều (lít)
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {days.map((day) => {
+                const dateStr = `${currentMonth}-${String(day).padStart(2, '0')}`;
+                const entry = getEntryForDay(day);
+                const isToday = dateStr === todayStr;
+                const dayOfWeek = new Date(year, month - 1, day).getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-              return (
-                <div
-                  key={e.date}
-                  className={`flex items-center justify-between p-3 rounded-xl transition ${
-                    isSelected
-                      ? 'bg-blue-100 border-2 border-blue-400'
-                      : 'bg-gray-50 hover:bg-gray-100 cursor-pointer'
-                  }`}
-                  onClick={() => !isSelected && jumpToDate(e.date)}
-                >
-                  <div>
-                    <span className="font-medium text-gray-800">{dateStr}</span>
-                    <span className="text-sm text-gray-500 ml-2">
-                      ☀️ {e.morning ?? '-'} | 🌇 {e.afternoon ?? '-'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-blue-600">{total.toFixed(1)} lít</span>
-                    <button
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        handleDelete(e.date);
-                      }}
-                      className="text-red-500 hover:text-red-700 font-bold px-2 py-1 rounded"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                return (
+                  <tr
+                    key={day}
+                    ref={isToday ? todayRowRef : undefined}
+                    className={`border-b border-gray-100 transition ${
+                      isToday
+                        ? 'bg-blue-100 border-l-4 border-l-blue-500 shadow-sm'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <td className="py-2.5 px-4 align-middle">
+                      {isToday ? (
+                        <div className="flex flex-col items-center">
+                          <span className="bg-blue-500 text-white text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center">
+                            {day}
+                          </span>
+                          <span className="text-[10px] text-blue-500 font-medium mt-0.5">
+                            Hôm nay
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          <div className={`font-semibold leading-tight ${
+                            isWeekend ? 'text-red-500' : 'text-gray-700'
+                          }`}>
+                            {day}
+                          </div>
+                          <div className="text-xs text-gray-400 leading-tight mt-0.5">
+                            {dayLabels[dayOfWeek]}
+                          </div>
+                        </>
+                      )}
+                    </td>
+                    <td className="py-2.5 px-2">
+                      <input
+                        key={`${currentMonth}-${day}-${dateStr}-morning`}
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        defaultValue={entry?.morning ?? ''}
+                        placeholder="-"
+                        onChange={(e) => handleInputChange(day, 'morning', e.target.value)}
+                        className={`w-full text-center text-base font-semibold py-2 px-1 rounded-xl border-2 focus:outline-none transition ${
+                          isToday
+                            ? 'border-amber-400 bg-amber-100 focus:border-amber-600'
+                            : 'border-amber-200 bg-amber-50/50 focus:border-amber-500'
+                        }`}
+                      />
+                    </td>
+                    <td className="py-2.5 px-2">
+                      <input
+                        key={`${currentMonth}-${day}-${dateStr}-afternoon`}
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        defaultValue={entry?.afternoon ?? ''}
+                        placeholder="-"
+                        onChange={(e) => handleInputChange(day, 'afternoon', e.target.value)}
+                        className={`w-full text-center text-base font-semibold py-2 px-1 rounded-xl border-2 focus:outline-none transition ${
+                          isToday
+                            ? 'border-orange-400 bg-orange-100 focus:border-orange-600'
+                            : 'border-orange-200 bg-orange-50/50 focus:border-orange-500'
+                        }`}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
+
     </div>
   );
 }
